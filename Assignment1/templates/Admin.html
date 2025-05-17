@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - MMU Sports Rental</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h3>Admin Panel</h3>
+    <div class="row">
+      <div class="col-md-6">
+        <a href="{{ url_for('do_login') }}" class="btn btn-danger mb-3" style="position: absolute; top: 20px; right: 20px;">
+          &larr; Logout
+        </a>
+        <h5>Add New Equipment</h5>
+        <form method="POST" >
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="EqName" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-control" name="category" required>
+          </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" name="quantity" required>
+          </div>
+          <button class="btn btn-success">Add Equipment</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <h5>Manage Equipment</h5>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Equipment ID</th>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in equipment %}
+              <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>
+                  <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
+                    onclick="openEditModal('{{ item.id }}', '{{ item.name }}', '{{ item.category }}', '{{ item.quantity }}')">
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- records search -->
+    <div class="row">
+      <div class="mb-3 space-between">
+        <h5 for="searchInput" class="form-label">Search Rental Records</h5>
+        <input type="text" class="form-control" id="searchInput" onkeyup="searchTable()"
+          placeholder="Search by name, ID, equipment, etc.">
+      </div>
+
+      <!-- records table -->
+      <div class="row">
+        <h5 class="mt-5">Rental Records</h5>
+        <table class="table table-striped" id="rentalTable">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Student ID</th>
+              <th>Equipment</th>
+              <th>Quantity</th>
+              <th>Date Rented</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in records %}
+            <tr>
+              <td>{{ record[0] }}</td>  <!-- Student Name -->
+              <td>{{ record[1] }}</td>  <!-- Student ID -->
+              <td>{{ record[2] }}</td>  <!-- Equipment Name -->
+              <td>{{ record[3] }}</td>  <!-- Quantity -->
+              <td>{{ record[4] }}</td>  <!-- Date Rented -->
+              <td>
+                {% if record[5] == 1 %}
+                  <span class="badge bg-success">Returned</span>
+                {% else %}
+                  <span class="badge bg-danger">Not Returned</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- equipment modal -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="/edit_equipment">>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Equipment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="editId">
+          <div class="mb-3">
+            <label>Name</label>
+            <input type="text" class="form-control" name="name" id="editName">
+          </div>
+          <div class="mb-3">
+            <label>Category</label>
+            <input type="text" class="form-control" name="category" id="editCategory">
+          </div>
+          <div class="mb-3">
+            <label>Quantity</label>
+            <input type="number" class="form-control" name="quantity" id="editQuantity">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" type="submit">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+  <style>
+    .space-between {
+    margin-top: 30px; /* Adjust the value as needed */
+  }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function openEditModal(id, name, category, quantity) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editName').value = name;
+      document.getElementById('editCategory').value = category;
+      document.getElementById('editQuantity').value = quantity;
+    }
+  </script>
+  <script>
+    function searchTable() {
+      let input = document.getElementById('searchInput');
+      let filter = input.value.toUpperCase();
+      let table = document.getElementById('rentalTable');
+      let tr = table.getElementsByTagName('tr');
+
+      for (let i = 1; i < tr.length; i++) {
+        let td = tr[i].getElementsByTagName('td');
+        let found = false;
+
+        for (let j = 0; j < td.length; j++) {
+          if (td[j]) {
+            let textValue = td[j].textContent || td[j].innerText;
+            if (textValue.toUpperCase().indexOf(filter) > -1) {
+              found = true;
+              break;
+            }
+          }
+        }
+
+        if (found) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+  </script>
+
+</body>
+
+</html>
